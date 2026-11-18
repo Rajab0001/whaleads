@@ -24,7 +24,6 @@
     "WHABUZZ_CONNECT_BASE": "https://app.whabuzz.com"
   },
   // Message media. Optional: delete this block on an account without R2 and media is proxied live from Meta instead.
-  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "whaleads-media" }],
   // Every minute. The flow engine ticks on every firing; the 15-minute jobs (media retries, purge, template sync, send-record
   // repair, dead push subscriptions) run only on minutes divisible by 15 (src/cron.ts). Cron triggers are UTC.
   "triggers": { "crons": ["* * * * *"] },

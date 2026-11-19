@@ -34,7 +34,7 @@ export async function handleRenderBridge(req: Request, env: Env, ctx: ExecutionC
   if (data?.type !== 'bot_outbound'
       || typeof data.customer !== 'string' || !/^[0-9]{5,20}$/.test(data.customer)
       || typeof data.body !== 'string' || data.body.length > 4096
-      || typeof data.wamid !== 'string' || !/^wamid\.[A-Za-z0-9_-]{8,256}$/.test(data.wamid)
+      || typeof data.wamid !== 'string' || !/^wamid\.[A-Za-z0-9+/_=-]{8,512}$/.test(data.wamid)
       || !Number.isInteger(data.timestamp) || data.timestamp < 0) {
     return new Response('invalid event', { status: 400 })
   }

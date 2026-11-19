@@ -29,6 +29,7 @@ import { handleReports } from './routes/reports'
 import { handleExport } from './routes/export'
 import { handlePush } from './routes/push'
 import { connectInfo, handleConnect, handleConnectCallback } from './routes/connect'
+import { handleRenderBridge } from './render-bridge'
 
 /** Direct Meta setup (Cloud API adaptor only): WABA subscription and app webhook. Staff alerts are web push (D17), not templates. */
 async function setup(cloud: CloudApiAdaptor, origin: string) {
@@ -75,6 +76,8 @@ async function handle(req: Request, env: Env, ctx: ExecutionContext): Promise<Re
         return json({ ok: false, instance: env.INSTANCE_NAME, schema_version: version, adaptor: null, adaptor_error: undecryptable ? 'config_undecryptable' : 'adaptor_error' })
       }
     }
+
+    if (path === '/webhooks/render-bridge' && req.method === 'POST') return await handleRenderBridge(req, env, ctx)
 
     if (path === '/webhooks/meta') {
       if (req.method === 'GET') return await verifyChallenge(url, env)

@@ -14,6 +14,7 @@ import {
 } from '../media'
 import { readJson } from './auth'
 import { actorId } from './settings'
+import { setBotHumanMode } from '../render-bridge'
 
 const FILTERS = ['all', 'unread', 'mine', 'open', 'closed'] as const
 type Filter = (typeof FILTERS)[number]
@@ -203,6 +204,10 @@ async function sendText(req: Request, env: Env, id: number, ctx?: ExecutionConte
   const text = typeof b.text === 'string' ? b.text.trim() : ''
   if (!text) return json({ ok: false, error: 'text required', field: 'text' }, 400)
   if (text.length > MAX_TEXT) return json({ ok: false, error: `text is over ${MAX_TEXT} characters`, field: 'text' }, 400)
+  const target = await env.DB.prepare('SELECT COALESCE(wa_id,phone) AS customer FROM contacts WHERE id=?1').bind(id).first<{ customer: string | null }>()
+  if (!target?.customer || !(await setBotHumanMode(env, target.customer))) {
+    return json({ ok: false, error: 'bot_handoff_failed', message: 'The bot could not be paused, so the reply was not sent. Try again or contact the bot administrator.' }, 503)
+  }
   const out = await sendTextToContact(env, id, text, { req, ctx })
   if (!out.ok) return out.kind === 'refused' ? out.response : upstreamFail(out.result, out.stage)
   return json({ ok: true, wamid: out.wamid, ...(out.queued ? { status: 'queued', queued_id: out.queued } : {}), message: { id: null, direction: 'out', wamid: out.wamid, type: 'text', body: text, status: 'sent', timestamp: out.now, media: null } })
@@ -232,6 +237,10 @@ async function sendMediaRoute(req: Request, env: Env, id: number, ctx?: Executio
   if (caption.length > MAX_CAPTION) return json({ ok: false, error: `caption is over ${MAX_CAPTION} characters`, field: 'caption' }, 400)
   const filename = safeFilename(file.name, kind)
 
+  const target = await env.DB.prepare('SELECT COALESCE(wa_id,phone) AS customer FROM contacts WHERE id=?1').bind(id).first<{ customer: string | null }>()
+  if (!target?.customer || !(await setBotHumanMode(env, target.customer))) {
+    return json({ ok: false, error: 'bot_handoff_failed', message: 'The bot could not be paused, so the media was not sent. Try again or contact the bot administrator.' }, 503)
+  }
   const out = await sendMediaToContact(env, id, { bytes, mime, kind, filename, caption: caption || undefined }, { req, ctx })
   if (!out.ok) return out.kind === 'refused' ? out.response : upstreamFail(out.result, out.stage)
   return json({

@@ -25,6 +25,8 @@ export interface Env {
   WHABUZZ_BASE_URL?: string
   /** Optional host of the hosted WhaBuzz Connect page; same allow-list as WHABUZZ_BASE_URL. Default https://app.whabuzz.com. */
   WHABUZZ_CONNECT_BASE?: string
+  /** Optional Render bot URL for signed handoff control. */
+  RENDER_BOT_URL?: string
   /** R2 bucket for message media. Optional: without it media is proxied live from Meta and not kept. */
   MEDIA?: R2Bucket
   /** D20: the live-channel Durable Object (one hub per deployment). Optional: without it the browsers just poll. */
